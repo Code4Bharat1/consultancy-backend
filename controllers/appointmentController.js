@@ -8,30 +8,28 @@ const MAX_APPOINTMENTS = 5; // Max number of appointments a user can book
 export const bookAppointment = async (req, res) => {
     console.log("Incoming Appointment Request:", req.body); // Debugging
 
-    // Ensure req.user exists (middleware should set it)
     if (!req.user) {
         return res.status(401).json({ success: false, message: "Unauthorized. Please log in." });
     }
 
-    // Extract fields from request body
-    const { type, date, time, reason, name, mobile } = req.body;
-    const user = req.user.id; // ✅ Set user from authenticated token
+    const { type, date, time, name, mobile } = req.body;
+    const user = req.user.id;
 
-    // Validate required fields
-    if (!type || !date || !time || !reason || !name || !mobile) {
+    // Updated validation (no 'reason')
+    if (!type || !date || !time || !name || !mobile) {
         return res.status(400).json({ 
             success: false, 
-            message: 'All fields (type, date, time, reason, name, mobile) are required.' 
+            message: 'All fields (type, date, time, name, mobile) are required.' 
         });
     }
 
     try {
         const existingAppointments = await Appointment.countDocuments({
-            user, // Ensure appointments are checked per user
+            user,
             status: { $in: ["pending", "confirmed"] }
         });
 
-        if (existingAppointments >= 5) {
+        if (existingAppointments >= MAX_APPOINTMENTS) {
             return res.status(400).json({
                 success: false,
                 message: "You have reached the maximum number of appointments allowed.",
@@ -39,11 +37,10 @@ export const bookAppointment = async (req, res) => {
         }
 
         const appointment = await Appointment.create({
-            user, // ✅ Include user field
+            user,
             type,
             date,
             time,
-            reason,
             name,
             mobile,
             status: 'pending',
@@ -60,6 +57,7 @@ export const bookAppointment = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to book appointment.' });
     }
 };
+
 
 
 // 🟡 Initiate Payment (Generate Payment Link)
