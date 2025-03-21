@@ -16,7 +16,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: "http://consultancy.code4bharat.com", // Allow frontend origin
+        origin: "https://consultancy.code4bharat.com", // Allow frontend origin
         credentials: true, // Allow cookies
     })
 );
